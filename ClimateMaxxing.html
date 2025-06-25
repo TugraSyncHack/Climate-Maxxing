@@ -1,1887 +1,256 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ClimateMaxxing - Modern Weather & Climate App</title>
-<link
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
-  rel="stylesheet"
-/>
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-<style>
-  /* Reset and base */
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
-  body {
-    margin: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-      Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background: var(--background);
-    color: var(--text-primary);
-    transition: background 0.4s ease, color 0.4s ease;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-  main {
-    flex-grow: 1;
-    padding: 24px 16px 48px;
-    max-width: 1280px;
-    margin: 0 auto;
-  }
-
-  /* Typography */
-  h1, h2, h3, h4, h5, h6 {
-    font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 0.4em;
-  }
-  h1 { font-size: 2.8rem; }
-  h2 { font-size: 2.4rem; }
-  h3 { font-size: 1.8rem; }
-  h4 { font-size: 1.3rem; }
-  p {
-    font-weight: 400;
-    line-height: 1.6;
-    color: var(--text-secondary);
-  }
-
-  /* CSS Custom Properties for themes */
-  :root {
-    --background: linear-gradient(135deg, #0ea5e9, #0284c7);
-    --background-alt: #f0f4f9;
-    --card-bg: rgba(255 255 255 / 0.1);
-    --text-primary: #e0e7ff;
-    --text-secondary: #a5b4fc;
-    --primary-color: #3b82f6;
-    --primary-color-light: #60a5fa;
-    --shadow-color: rgba(0, 0, 0, 0.25);
-    --blur-glass: rgba(255 255 255 / 0.15);
-  }
-  body.light {
-    --background: linear-gradient(135deg, #fef3c7, #fcd34d);
-    --card-bg: rgba(255 255 255 / 0.8);
-    --text-primary: #334155;
-    --text-secondary: #64748b;
-    --primary-color: #ca8a04;
-    --primary-color-light: #facc15;
-    --shadow-color: rgba(0, 0, 0, 0.12);
-    --blur-glass: rgba(255 255 255 / 0.6);
-  }
-
-  /* Layout */
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 200;
-    background: var(--background);
-    backdrop-filter: saturate(180%) blur(12px);
-    border-bottom: 1px solid var(--primary-color-light);
-    padding: 16px 24px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  header .logo {
-    font-weight: 900;
-    font-size: 1.6rem;
-    color: var(--text-primary);
-    user-select: none;
-  }
-  header.light .logo {
-    color: var(--text-primary);
-  }
-  header .location-selector {
-    flex: 1 1 auto;
-    max-width: 360px;
-    position: relative;
-  }
-  header select,
-  header input[type="search"] {
-    width: 100%;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    background: var(--card-bg);
-    color: var(--text-primary);
-    outline-offset: 2px;
-    transition: background 0.3s ease;
-  }
-  body.light header select,
-  body.light header input[type="search"] {
-    color: var(--text-primary);
-  }
-  header select:focus,
-  header input[type="search"]:focus {
-    outline: 3px solid var(--primary-color-light);
-    background: var(--blur-glass);
-  }
-  header .nav-buttons {
-    display: flex;
-    gap: 12px;
-  }
-  header button {
-    background: transparent;
-    border: 2px solid var(--primary-color);
-    color: var(--primary-color);
-    cursor: pointer;
-    font-weight: 600;
-    border-radius: 12px;
-    padding: 6px 14px;
-    min-width: 70px;
-    transition: 0.3s ease;
-  }
-  header button:hover,
-  header button:focus-visible {
-    background: var(--primary-color);
-    color: #111827;
-    box-shadow: 0 0 12px var(--primary-color-light);
-  }
-
-  /* Layout - main content */
-  .content-container {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 32px;
-    margin-top: 32px;
-  }
-  @media(min-width: 768px) {
-    .content-container {
-      grid-template-columns: 2fr 1fr;
-    }
-  }
-  @media(min-width: 1280px) {
-    .content-container {
-      grid-template-columns: 2fr 1fr 1fr;
-    }
-  }
-
-  /* Glass morphism cards */
-  .card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 8px 20px var(--shadow-color);
-    backdrop-filter: saturate(180%) blur(24px);
-    color: var(--text-primary);
-  }
-  body.light .card {
-    color: var(--text-primary);
-  }
-
-  /* Large current weather display */
-  .current-weather {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-  .current-temp {
-    font-size: 6rem;
-    font-weight: 900;
-    line-height: 1;
-    margin-bottom: 8px;
-    color: var(--primary-color-light);
-  }
-  .current-condition {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .feels-like {
-    font-size: 1rem;
-    color: var(--text-secondary);
-    margin-bottom: 12px;
-  }
-
-  /* Animated weather icon container */
-  .weather-icon {
-    width: 120px;
-    height: 120px;
-    margin-bottom: 16px;
-    position: relative;
-  }
-  .weather-icon svg {
-    width: 100%;
-    height: 100%;
-    fill: var(--primary-color-light);
-    filter: drop-shadow(0 0 2px var(--primary-color-light));
-  }
-
-  /* Scrollable hourly forecast */
-  .hourly-forecast {
-    display: flex;
-    overflow-x: auto;
-    gap: 16px;
-    padding-bottom: 8px;
-  }
-  .hourly-item {
-    flex: 0 0 auto;
-    width: 72px;
-    background: var(--blur-glass);
-    border-radius: 12px;
-    padding: 8px;
-    color: var(--text-primary);
-    text-align: center;
-    font-size: 0.9rem;
-    cursor: default;
-    user-select: none;
-    box-shadow: 0 2px 6px var(--shadow-color);
-  }
-  .hourly-item .hour {
-    font-weight: 700;
-  }
-  .hourly-item .temp {
-    margin-top: 6px;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--primary-color-light);
-  }
-
-  /* 7-day forecast */
-  .daily-forecast {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 12px;
-    margin-top: 16px;
-  }
-  .daily-card {
-    background: var(--blur-glass);
-    border-radius: 12px;
-    padding: 12px;
-    color: var(--text-primary);
-    text-align: center;
-    box-shadow: 0 2px 6px var(--shadow-color);
-    cursor: default;
-  }
-  .daily-card strong {
-    display: block;
-    margin-bottom: 8px;
-  }
-
-  /* Circular progress indicators */
-  .circular-indicator {
-    position: relative;
-    width: 96px;
-    height: 96px;
-    margin: 0 auto 12px auto;
-  }
-  .circular-indicator svg {
-    transform: rotate(-90deg);
-    width: 100%;
-    height: 100%;
-  }
-  .circular-bg {
-    fill: none;
-    stroke: var(--text-secondary);
-    stroke-width: 8;
-  }
-  .circular-progress {
-    fill: none;
-    stroke: var(--primary-color-light);
-    stroke-width: 8;
-    stroke-linecap: round;
-    stroke-dasharray: 283;
-    stroke-dashoffset: 283; /* Animate with JS */
-    transition: stroke-dashoffset 0.6s ease;
-  }
-  .circular-label {
-    position: absolute;
-    font-weight: 700;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: var(--text-primary);
-    font-size: 1.2rem;
-  }
-
-  /* Weather maps container */
-  .map-container {
-    height: 280px;
-    border-radius: 16px;
-    overflow: hidden;
-    position: relative;
-  }
-  .map-frame {
-    width: 100%;
-    height: 100%;
-    border: none;
-  }
-  /* Placeholder for map overlays */
-  .map-placeholder {
-    width: 100%;
-    height: 100%;
-    background: var(--blur-glass);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-    font-size: 1.2rem;
-  }
-
-  /* Navigation & Auth modals */
-  .modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 400;
-    padding: 24px;
-    overflow-y: auto;
-  }
-  .modal.show {
-    display: flex;
-  }
-  .modal-content {
-    background: var(--card-bg);
-    border-radius: 24px;
-    max-width: 420px;
-    width: 100%;
-    padding: 32px 24px;
-    color: var(--text-primary);
-    backdrop-filter: saturate(180%) blur(24px);
-    box-shadow: 0 8px 24px var(--shadow-color);
-    position: relative;
-  }
-  .modal-header {
-    font-size: 1.8rem;
-    font-weight: 800;
-    margin-bottom: 24px;
-    text-align: center;
-  }
-  .modal-close {
-    position: absolute;
-    top: 16px;
-    right: 18px;
-    background: none;
-    border: none;
-    color: var(--text-primary);
-    font-size: 28px;
-    cursor: pointer;
-  }
-  .modal-close:focus-visible {
-    outline-offset: 3px;
-    outline: 3px solid var(--primary-color-light);
-  }
-  .modal form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .modal input {
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: none;
-    background: var(--blur-glass);
-    color: var(--text-primary);
-    font-size: 1rem;
-    outline-offset: 2px;
-  }
-  .modal input:focus {
-    outline: 3px solid var(--primary-color-light);
-  }
-  .modal button {
-    padding: 12px;
-    font-size: 1rem;
-    font-weight: 700;
-    border-radius: 12px;
-    background: var(--primary-color);
-    border: none;
-    color: #111827;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  .modal button:hover,
-  .modal button:focus-visible {
-    background: var(--primary-color-light);
-    box-shadow: 0 0 16px var(--primary-color-light);
-  }
-  .toggle-link {
-    color: var(--primary-color-light);
-    cursor: pointer;
-    font-weight: 600;
-    text-align: center;
-  }
-  .toggle-link:hover,
-  .toggle-link:focus-visible {
-    text-decoration: underline;
-  }
-
-  /* Footer */
-  footer {
-    background: var(--background);
-    color: var(--text-secondary);
-    padding: 20px 24px;
-    text-align: center;
-    font-size: 0.9rem;
-  }
-
-  /* Animated weather icons (simple SVG animations) */
-  svg.animate-sunny > circle.sun-core {
-    animation: pulseGlow 3s ease-in-out infinite;
-  }
-  svg.animate-rainy > g.raindrop {
-    animation: dropRain 1.5s linear infinite;
-  }
-  svg.animate-cloudy > g.cloud {
-    animation: floatCloud 4s ease-in-out infinite alternate;
-  }
-  svg.animate-snowy > g.snowflake {
-    animation: fallSnow 4s linear infinite;
-  }
-  svg.animate-stormy > g.lightning {
-    animation: flashLightning 3s linear infinite alternate;
-  }
-  @keyframes pulseGlow {
-    0%, 100% { fill-opacity: 1; }
-    50% { fill-opacity: 0.6; }
-  }
-  @keyframes dropRain {
-    0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(15px); opacity: 0; }
-  }
-  @keyframes floatCloud {
-    0% { transform: translateX(0) translateY(0); }
-    100% { transform: translateX(4px) translateY(-2px); }
-  }
-  @keyframes fallSnow {
-    0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(18px); opacity: 0; }
-  }
-  @keyframes flashLightning {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  /* Flexible layout fixes */
-  .flex-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  /* Scrollbar styling for hourly forecast */
-  .hourly-forecast::-webkit-scrollbar {
-    height: 8px;
-  }
-  .hourly-forecast::-webkit-scrollbar-thumb {
-    background: var(--primary-color-light);
-    border-radius: 8px;
-  }
-
-  /* Developer/Admin mode badges & toggle */
-  .mode-badge {
-    background: var(--primary-color-light);
-    border-radius: 14px;
-    padding: 6px 16px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: #111827;
-    user-select: none;
-    margin-left: 12px;
-  }
-
-  /* Accessibility and focus */
-  button:focus-visible,
-  select:focus-visible,
-  input:focus-visible {
-    outline-offset: 2px;
-    outline: 3px solid var(--primary-color-light);
-  }
-
-  /* Quotes section */
-  #quoteSection {
-    text-align: center;
-    font-style: italic;
-    font-weight: 600;
-    color: var(--primary-color-light);
-    margin-bottom: 24px;
-    min-height: 3rem;
-    font-size: 1.3rem;
-    user-select: none;
-    animation: fadeInOut 8s infinite;
-  }
-
-  @keyframes fadeInOut {
-    0%, 100% { opacity: 0; }
-    15%, 85% { opacity: 1; }
-  }
-
-  /* Games section styles */
-  #gamesSection {
-    margin-top: 48px;
-  }
-
-  #gamesSection h2 {
-    margin-bottom: 16px;
-  }
-
-  .game-tabs {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 24px;
-    justify-content: center;
-  }
-  .game-tab {
-    background: var(--blur-glass);
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: border-color 0.3s ease;
-    color: var(--text-primary);
-    user-select: none;
-  }
-  .game-tab[aria-selected="true"] {
-    border-color: var(--primary-color-light);
-    background: var(--primary-color);
-    color: #111827;
-  }
-  .game-tab:hover:not([aria-selected="true"]),
-  .game-tab:focus-visible {
-    border-color: var(--primary-color-light);
-    outline: none;
-  }
-
-  .game-container {
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 8px 20px var(--shadow-color);
-    backdrop-filter: saturate(180%) blur(30px);
-    color: var(--text-primary);
-    max-width: 720px;
-    margin: 0 auto;
-    position: relative;
-    min-height: 320px;
-  }
-
-  /* Game 1: Catch the Raindrops */
-  #game1Canvas {
-    background: linear-gradient(to top, #0c4a6e, #60a5fa);
-    display: block;
-    margin: 0 auto;
-    border-radius: 16px;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
-  }
-
-  /* Game 2: Climate Runner */
-  #game2Canvas {
-    background: linear-gradient(to bottom, #5f9ea0, #2e8b57);
-    display: block;
-    margin: 0 auto;
-    border-radius: 16px;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
-  }
-
-  /* Game UI Elements */
-  .game-info {
-    margin-top: 12px;
-    font-weight: 600;
-    text-align: center;
-    user-select: none;
-  }
-
-  /* Button to restart games */
-  .game-restart-btn {
-    display: inline-block;
-    margin-top: 16px;
-    background: var(--primary-color);
-    color: #111827;
-    padding: 8px 20px;
-    border-radius: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    user-select: none;
-    border: none;
-    transition: background 0.3s ease;
-  }
-  .game-restart-btn:hover,
-  .game-restart-btn:focus-visible {
-    background: var(--primary-color-light);
-    outline: none;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yeşil Çete - Karbonun Alayına Gider!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .parallax {
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        .card-hover:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        .emoji {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        #carbon-bar {
+            transition: width 0.5s ease;
+        }
+        #game-container {
+            transition: all 0.3s ease;
+        }
+    </style>
 </head>
-<body class="dark" aria-live="polite" aria-relevant="additions removals" aria-atomic="true">
-<header id="app-header" class="dark" role="banner">
-  <div class="logo" aria-label="Application Name">ClimateMaxxing</div>
-  <div class="location-selector" role="search">
-    <label for="locationInput" class="visually-hidden">Search Location</label>
-    <input
-      id="locationInput"
-      type="search"
-      placeholder="Konum Ara"
-      aria-describedby="searchHelp"
-      autocomplete="off"
-      spellcheck="false"
-      aria-autocomplete="list"
-      aria-haspopup="listbox"
-      aria-expanded="false"
-      />
-    <ul id="locationListbox" role="listbox" aria-label="Konum önerileri" tabindex="-1" style="display:none; position: absolute; z-index: 500; max-height: 200px; overflow-y:auto; background: var(--card-bg); border-radius: 12px; width: 360px; margin-top: 4px; padding: 0; list-style:none;"></ul>
-    <div id="searchHelp" class="visually-hidden">
-      Aramak için yazın ve seçim yapmak için enter'a basın.
-    </div>
-  </div>
-  <div class="nav-buttons" role="navigation" aria-label="Ana navigasyon">
-    <button id="btnThemeToggle" aria-pressed="false" aria-label="Karanlık veya aydınlık modu değiştir" title="Karanlık/Aydınlık Modu Değiştir">
-      <span class="material-icons">brightness_4</span>
-    </button>
-    <button id="btnSignIn">Giriş</button>
-  </div>
-</header>
-
-<main id="main-content" tabindex="-1">
-  <!-- Quotes Section -->
-  <section id="quoteSection" aria-live="polite" aria-atomic="true" role="region">
-  </section>
-
-  <!-- Weather Section -->
-  <section class="current-weather card" aria-label="Güncel hava durumu">
-    <div class="weather-icon" id="currentWeatherIcon" aria-hidden="true"></div>
-    <div class="current-temp" id="currentTemp">--°C</div>
-    <div class="current-condition" id="currentCondition">Yükleniyor...</div>
-    <div class="feels-like" id="feelsLikeText"></div>
-  </section>
-  <section aria-label="Saatlik hava durumu" class="card" id="hourlyForecastSection">
-    <h2>24 Saatlik Tahmin</h2>
-    <div class="hourly-forecast" id="hourlyForecast"></div>
-  </section>
-  <section aria-label="7 günlük hava tahmini" class="card" id="dailyForecastSection">
-    <h2>7 Günlük Tahmin</h2>
-    <div class="daily-forecast" id="dailyForecast"></div>
-  </section>
-  <section aria-label="Hava kalitesi ve daha fazlası" class="card" id="metricsSection">
-    <h2>Hava Kalitesi, UV İndeksi ve Diğerleri</h2>
-    <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;">
-      <div>
-        <div class="circular-indicator" aria-label="Hava Kalitesi İndeksi">
-          <svg viewBox="0 0 100 100" role="img" aria-hidden="true">
-            <circle class="circular-bg" cx="50" cy="50" r="45"></circle>
-            <circle class="circular-progress" cx="50" cy="50" r="45" id="aqiProgress"></circle>
-          </svg>
-          <div class="circular-label" id="aqiValue">0</div>
+<body class="bg-gray-50 font-sans">
+    <nav class="bg-green-700 text-white sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold flex items-center">
+                🌍 Yeşil Çete
+            </a>
+            <div class="hidden md:flex space-x-8">
+                <a href="#carbon-explained" class="hover:text-green-200 transition-all">Karbonun Alayına Gider</a>
+                <a href="#actions" class="hover:text-green-200 transition-all">Öneriler</a>
+                <a href="#game" class="hover:text-green-200 transition-all">Oyun</a>
+                <a href="#login-section" class="hover:text-green-200 transition-all">Giriş/Kayıt</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
         </div>
-        <div style="text-align:center; font-weight: 600;">Hava Kalitesi İndeksi</div>
-      </div>
-      <div>
-        <div class="circular-indicator" aria-label="UV İndeksi">
-          <svg viewBox="0 0 100 100" role="img" aria-hidden="true">
-            <circle class="circular-bg" cx="50" cy="50" r="45"></circle>
-            <circle class="circular-progress" cx="50" cy="50" r="45" id="uvProgress"></circle>
-          </svg>
-          <div class="circular-label" id="uvValue">0</div>
+        <div id="mobile-menu" class="md:hidden hidden bg-green-800 px-4 py-2">
+            <a href="#carbon-explained" class="block py-2 hover:text-green-200">Karbonun Alayına Gider</a>
+            <a href="#actions" class="block py-2 hover:text-green-200">Öneriler</a>
+            <a href="#game" class="block py-2 hover:text-green-200">Oyun</a>
+            <a href="#login-section" class="block py-2 hover:text-green-200">Giriş/Kayıt</a>
         </div>
-        <div style="text-align:center; font-weight: 600;">UV İndeksi</div>
-      </div>
-      <div>
-        <div class="circular-indicator" aria-label="Nem">
-          <svg viewBox="0 0 100 100" role="img" aria-hidden="true">
-            <circle class="circular-bg" cx="50" cy="50" r="45"></circle>
-            <circle class="circular-progress" cx="50" cy="50" r="45" id="humidityProgress"></circle>
-          </svg>
-          <div class="circular-label" id="humidityValue">0%</div>
-        </div>
-        <div style="text-align:center; font-weight: 600;">Nem</div>
-      </div>
-    </div>
-  </section>
-
-  <section aria-label="Hava haritaları" class="card" id="weatherMapsSection">
-    <h2>Hava Haritaları</h2>
-    <div class="map-container" id="mapContainer">
-      <div class="map-placeholder" aria-live="polite" aria-busy="true">Haritalar yükleniyor...</div>
-    </div>
-  </section>
-
-  <section aria-label="Diğer hava detayları" class="card" id="detailsSection">
-    <h2>Diğer Detaylar</h2>
-    <ul>
-      <li><strong>Basınç:</strong> <span id="pressureValue">--</span> hPa</li>
-      <li><strong>Rüzgar Hızı:</strong> <span id="windSpeedValue">--</span> km/sa</li>
-      <li><strong>Rüzgar Yönü:</strong> <span id="windDirectionValue">--</span></li>
-      <li><strong>Görüş Mesafesi:</strong> <span id="visibilityValue">--</span> km</li>
-      <li><strong>Gündoğumu:</strong> <span id="sunriseValue">--</span></li>
-      <li><strong>Günbatımı:</strong> <span id="sunsetValue">--</span></li>
-      <li><strong>Altın Saat:</strong> <span id="goldenHourValue">--</span></li>
-    </ul>
-  </section>
-
-  <section aria-label="Kullanıcı modu ve bilgileri" class="card" id="userInfoSection" style="display:none;">
-    <h2>Kullanıcı Bilgileri & Geliştirici Modu</h2>
-    <p><strong>Giriş yapan kullanıcı:</strong> <span id="userNameDisplay"></span></p>
-    <p>Geliştirici Modu: <input type="checkbox" id="developerModeToggle" aria-label="Geliştirici modunu aç/kapat" /></p>
-    <p>Admin Modu: <input type="checkbox" id="adminModeToggle" aria-label="Admin modunu aç/kapat" /></p>
-    <div id="devInfo" style="margin-top: 16px; color: var(--primary-color-light); font-weight: 600; display:none;">
-      Geliştirici / yönetici özellikleri aktif.
-    </div>
-  </section>
-
-  <!-- Games Section -->
-  <section id="gamesSection" aria-label="Oyunlar bölümü">
-    <h2>Oyunlar</h2>
-    <nav class="game-tabs" role="tablist">
-      <button role="tab" aria-selected="true" id="tab-game1" aria-controls="game1" tabindex="0" class="game-tab">Yağmur Damlası Yakala</button>
-      <button role="tab" aria-selected="false" id="tab-game2" aria-controls="game2" tabindex="-1" class="game-tab">İklim Koşucusu</button>
     </nav>
-    <div id="game1" role="tabpanel" tabindex="0" aria-labelledby="tab-game1" class="game-container">
-      <canvas id="game1Canvas" width="600" height="320" aria-label="Yağmur Damlası Yakala oyunu"></canvas>
-      <div class="game-info" id="game1ScoreLabel" aria-live="polite" aria-atomic="true">Puan: 0</div>
-      <button class="game-restart-btn" id="game1RestartBtn" aria-label="Oyunu yeniden başlat">Yeniden Başlat</button>
-    </div>
-    <div id="game2" role="tabpanel" tabindex="0" aria-labelledby="tab-game2" class="game-container" hidden>
-      <canvas id="game2Canvas" width="600" height="320" aria-label="İklim Koşucusu oyunu"></canvas>
-      <div class="game-info" id="game2ScoreLabel" aria-live="polite" aria-atomic="true">Puan: 0</div>
-      <button class="game-restart-btn" id="game2RestartBtn" aria-label="Oyunu yeniden başlat">Yeniden Başlat</button>
-    </div>
-  </section>
-</main>
 
-<footer>
-  &copy; 2024 ClimateMaxxing. Daha iyi bir gelecek için iklim bilinci ve eylemi.
-</footer>
-
-<!-- Sign In Modal -->
-<div
-  class="modal"
-  id="signInModal"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="signInTitle"
-  tabindex="-1"
->
-  <div class="modal-content">
-    <button class="modal-close" aria-label="Oturumu kapat">×</button>
-    <h2 id="signInTitle" class="modal-header">Giriş Yap</h2>
-    <form id="signInForm" autocomplete="off">
-      <input
-        id="signInEmail"
-        name="email"
-        type="email"
-        placeholder="E-posta"
-        required
-        aria-required="true"
-        autocomplete="email"
-      />
-      <input
-        id="signInPassword"
-        name="password"
-        type="password"
-        placeholder="Şifre"
-        required
-        aria-required="true"
-        autocomplete="current-password"
-        minlength="6"
-      />
-      <button type="submit">Giriş</button>
-    </form>
-    <p style="text-align: center; margin-top: 12px;">
-      Hesabınız yok mu?
-      <span class="toggle-link" id="showSignUp">Kayıt Ol</span>
-    </p>
-  </div>
-</div>
-
-<!-- Sign Up Modal -->
-<div
-  class="modal"
-  id="signUpModal"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="signUpTitle"
-  tabindex="-1"
->
-  <div class="modal-content">
-    <button class="modal-close" aria-label="Kayıt modunu kapat">×</button>
-    <h2 id="signUpTitle" class="modal-header">Kayıt Ol</h2>
-    <form id="signUpForm" autocomplete="off">
-      <input
-        id="signUpName"
-        name="name"
-        type="text"
-        placeholder="Ad Soyad"
-        required
-        aria-required="true"
-        autocomplete="name"
-      />
-      <input
-        id="signUpEmail"
-        name="email"
-        type="email"
-        placeholder="E-posta"
-        required
-        aria-required="true"
-        autocomplete="email"
-      />
-      <input
-        id="signUpPassword"
-        name="password"
-        type="password"
-        placeholder="Şifre"
-        required
-        aria-required="true"
-        minlength="6"
-        autocomplete="new-password"
-      />
-      <button type="submit">Kayıt Ol</button>
-    </form>
-    <p style="text-align: center; margin-top: 12px;">
-      Zaten hesabınız var mı?
-      <span class="toggle-link" id="showSignIn">Giriş Yap</span>
-    </p>
-  </div>
-</div>
-
-<script>
-  (() => {
-    'use strict';
-
-    // Quotes array in Turkish about saving the world by blocking climate change
-    const quotes = [
-      "Gezegenimizi korumak, geleceğimizi kurtarmaktır.",
-      "İklim değişikliğini durdurmak için bugün harekete geçmeliyiz.",
-      "Her küçük adım, büyük bir fark yaratır.",
-      "Doğa bizim evimizdir, onu koruyalım.",
-      "Sürdürülebilirlik, gelecek nesillere bir mirastır.",
-      "Küresel ısınmayı durdurmak, insanlığın görevidir.",
-      "Doğaya saygı göster, dünyayı yaşat.",
-      "Karbon ayak izimizi azaltmak, dünyayı iyileştirir.",
-      "İklim değişikliğiyle mücadele, hepimizin sorumluluğudur.",
-      "Gezegenimizi sevelim, onu koruyalım."
-    ];
-
-    // Quotes animation
-    const quoteSection = document.getElementById('quoteSection');
-    let quoteIndex = 0;
-    function rotateQuotes() {
-      quoteSection.textContent = quotes[quoteIndex];
-      quoteIndex = (quoteIndex + 1) % quotes.length;
-    }
-    rotateQuotes();
-    setInterval(() => {
-      quoteSection.style.opacity = 0;
-      setTimeout(() => {
-        rotateQuotes();
-        quoteSection.style.opacity = 1;
-      }, 400);
-    }, 8000);
-
-    // Data structures for locations and weather
-    let locations = [
-      {
-        id: 'loc-1',
-        name: 'San Francisco',
-        country: 'US',
-        coordinates: { lat: 37.7749, lon: -122.4194 },
-        timezone: 'America/Los_Angeles',
-        isDefault: true,
-        isFavorite: true
-      },
-      {
-        id: 'loc-2',
-        name: 'New York',
-        country: 'US',
-        coordinates: { lat: 40.7128, lon: -74.006 },
-        timezone: 'America/New_York',
-        isDefault: false,
-        isFavorite: false
-      },
-      {
-        id: 'loc-3',
-        name: 'London',
-        country: 'GB',
-        coordinates: { lat: 51.5074, lon: -0.1278 },
-        timezone: 'Europe/London',
-        isDefault: false,
-        isFavorite: false
-      }
-    ];
-
-    // Simulated user database (front-end only)
-    const usersDB = [
-      { email: 'user@example.com', password: 'password123', name: 'Örnek Kullanıcı', roles: ['user'] },
-      { email: 'admin@example.com', password: 'admin1234', name: 'Admin Kullanıcı', roles: ['admin', 'developer'] }
-    ];
-
-    // Users who signed in (front-end state, simulated)
-    let currentUser = null;
-    let developerMode = false;
-    let adminMode = false;
-
-    // Current weather data holder
-    let weatherData = null;
-    let selectedLocationId = locations.find(loc => loc.isDefault).id;
-
-    // UI references
-    const body = document.body;
-    const header = document.getElementById('app-header');
-    const locationInput = document.getElementById('locationInput');
-    const locationListbox = document.getElementById('locationListbox');
-
-    const currentTempEl = document.getElementById('currentTemp');
-    const currentConditionEl = document.getElementById('currentCondition');
-    const feelsLikeTextEl = document.getElementById('feelsLikeText');
-    const currentWeatherIconEl = document.getElementById('currentWeatherIcon');
-    const hourlyForecastEl = document.getElementById('hourlyForecast');
-    const dailyForecastEl = document.getElementById('dailyForecast');
-
-    const aqiValueEl = document.getElementById('aqiValue');
-    const aqiProgressEl = document.getElementById('aqiProgress');
-    const uvValueEl = document.getElementById('uvValue');
-    const uvProgressEl = document.getElementById('uvProgress');
-    const humidityValueEl = document.getElementById('humidityValue');
-    const humidityProgressEl = document.getElementById('humidityProgress');
-
-    const pressureValueEl = document.getElementById('pressureValue');
-    const windSpeedValueEl = document.getElementById('windSpeedValue');
-    const windDirectionValueEl = document.getElementById('windDirectionValue');
-    const visibilityValueEl = document.getElementById('visibilityValue');
-    const sunriseValueEl = document.getElementById('sunriseValue');
-    const sunsetValueEl = document.getElementById('sunsetValue');
-    const goldenHourValueEl = document.getElementById('goldenHourValue');
-
-    const mapContainerEl = document.getElementById('mapContainer');
-
-    const btnThemeToggle = document.getElementById('btnThemeToggle');
-
-    const btnSignIn = document.getElementById('btnSignIn');
-    const signInModal = document.getElementById('signInModal');
-    const signUpModal = document.getElementById('signUpModal');
-
-    const signInForm = document.getElementById('signInForm');
-    const signUpForm = document.getElementById('signUpForm');
-
-    const showSignUpLink = document.getElementById('showSignUp');
-    const showSignInLink = document.getElementById('showSignIn');
-
-    const userInfoSection = document.getElementById('userInfoSection');
-    const userNameDisplay = document.getElementById('userNameDisplay');
-    const devModeToggle = document.getElementById('developerModeToggle');
-    const adminModeToggle = document.getElementById('adminModeToggle');
-    const devInfoEl = document.getElementById('devInfo');
-
-    // Games Section Elements
-    const tabGame1 = document.getElementById('tab-game1');
-    const tabGame2 = document.getElementById('tab-game2');
-    const game1Panel = document.getElementById('game1');
-    const game2Panel = document.getElementById('game2');
-
-    // Game 1: Catch the Raindrops
-    const game1Canvas = document.getElementById('game1Canvas');
-    const game1Ctx = game1Canvas.getContext('2d');
-    const game1ScoreLabel = document.getElementById('game1ScoreLabel');
-    const game1RestartBtn = document.getElementById('game1RestartBtn');
-    let game1Score = 0;
-    let game1PlayerX = game1Canvas.width / 2;
-    const game1PlayerWidth = 80;
-    const game1PlayerHeight = 16;
-    let game1Raindrops = [];
-    let game1Running = false;
-    let game1AnimationFrame;
-
-    // Game 2: Climate Runner
-    const game2Canvas = document.getElementById('game2Canvas');
-    const game2Ctx = game2Canvas.getContext('2d');
-    const game2ScoreLabel = document.getElementById('game2ScoreLabel');
-    const game2RestartBtn = document.getElementById('game2RestartBtn');
-    let game2Score = 0;
-    let game2PlayerY = 0;
-    let game2PlayerVY = 0;
-    let game2Obstacles = [];
-    let game2Running = false;
-    let game2GroundY = game2Canvas.height - 60;
-    let game2AnimationFrame;
-
-    // Utilities
-
-    // Create a map for wind directions (Turkish abbreviations)
-    const windDirections = [
-      'K', 'KKD', 'KD', 'DKD', 'D', 'DDG', 'DG', 'GD',
-      'G', 'GGB', 'GB', 'BGB', 'B', 'BKB', 'KB', 'KKB'
-    ];
-    function degreesToDirection(deg) {
-      const index = Math.floor(((deg + 11.25) % 360) / 22.5);
-      return windDirections[index] || 'K';
-    }
-    function formatTimeISOToLocale(isoStr, timeZone, opts = {}) {
-      const date = new Date(isoStr);
-      return date.toLocaleTimeString('tr-TR', {...{hour: '2-digit', minute: '2-digit'}, ...opts, timeZone});
-    }
-
-    // Calculate golden hour times (approximation)
-    function calculateGoldenHour(sunrise, sunset) {
-      const sunriseDate = new Date(sunrise);
-      const sunsetDate = new Date(sunset);
-      const morningGoldenHourEnd = new Date(sunriseDate.getTime() + 60 * 60 * 1000);
-      const eveningGoldenHourStart = new Date(sunsetDate.getTime() - 60 * 60 * 1000);
-      const formatter = new Intl.DateTimeFormat('tr-TR', {hour: '2-digit', minute: '2-digit'});
-      return `${formatter.format(morningGoldenHourEnd)} - ${formatter.format(eveningGoldenHourStart)}`;
-    }
-
-    // Clear child nodes function
-    function clearElement(el) {
-      while(el.firstChild) {
-        el.removeChild(el.firstChild);
-      }
-    }
-
-    // Generate realistic forecast (simulate)
-    function generateRealisticForecast(days, coordinates) {
-      const conditions = ['sunny', 'cloudy', 'rainy', 'snowy', 'stormy'];
-      const forecast = [];
-      const now = new Date();
-      for(let i=0; i<days; i++) {
-        const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
-        const condition = conditions[Math.floor(Math.random() * conditions.length)];
-        const high = Math.round(Math.random() * 15 + 20);
-        const low = Math.round(high - (Math.random() * 10 + 5));
-        const precipitation = Math.round(Math.random() * 70);
-        const windSpeed = Math.round(Math.random() * 25 + 5);
-        const windDirection = Math.floor(Math.random() * 360);
-        const hourly = [];
-        for(let h=0; h<24; h++) {
-          const hourCondition = conditions[Math.floor(Math.random() * conditions.length)];
-          const hourTemp = low + (high - low) * Math.abs(Math.sin((h / 24) * Math.PI));
-          hourly.push({
-            hour: h,
-            temp: Math.round(hourTemp),
-            condition: hourCondition,
-            precipitation: Math.round(Math.random() * 20),
-            windSpeed: Math.round(Math.random() * 20 + 2),
-            windDirection: Math.floor(Math.random() * 360),
-          });
-        }
-        forecast.push({
-          date: date.toISOString(),
-          high,
-          low,
-          condition,
-          precipitation,
-          windSpeed,
-          windDirection,
-          hourly
-        });
-      }
-      return forecast;
-    }
-    
-    // Setup a random weather background gradient based on condition and time of day
-    function updateWeatherBackground(condition) {
-      const bodyClassList = document.body.classList;
-      bodyClassList.remove('bg-sunny', 'bg-rainy', 'bg-cloudy', 'bg-snowy', 'bg-stormy');
-      switch(condition) {
-        case 'sunny':
-          bodyClassList.add('bg-sunny');
-          document.body.style.background = 'linear-gradient(135deg, #0ea5e9, #0284c7)';
-          break;
-        case 'rainy':
-          document.body.style.background = 'linear-gradient(135deg, #4b6cb7, #182848)';
-          break;
-        case 'cloudy':
-          document.body.style.background = 'linear-gradient(135deg, #606c88, #3f4c6b)';
-          break;
-        case 'snowy':
-          document.body.style.background = 'linear-gradient(135deg, #cfd9df, #e2ebf0)';
-          break;
-        case 'stormy':
-          document.body.style.background = 'linear-gradient(135deg, #434343, #000000)';
-          break;
-        default:
-          document.body.style.background = 'linear-gradient(135deg, #0ea5e9, #0284c7)';
-      }
-    }
-
-    // Create weather icon
-    function createWeatherIcon(condition) {
-      const svgNS = 'http://www.w3.org/2000/svg';
-      let svg = document.createElementNS(svgNS, 'svg');
-      svg.setAttribute('viewBox', '0 0 64 64');
-      svg.setAttribute('aria-hidden', 'true');
-      svg.setAttribute('focusable', 'false');
-      svg.style.maxWidth = '100%';
-      svg.style.maxHeight = '100%';
-
-      switch(condition) {
-        case 'sunny': {
-          svg.classList.add('animate-sunny');
-          const circle = document.createElementNS(svgNS, 'circle');
-          circle.setAttribute('cx', '32');
-          circle.setAttribute('cy', '32');
-          circle.setAttribute('r', '14');
-          circle.classList.add('sun-core');
-          circle.setAttribute('fill', '#FFD60A');
-          svg.appendChild(circle);
-          for(let i = 0; i < 8; i++) {
-            let line = document.createElementNS(svgNS, 'line');
-            line.setAttribute('x1', '32');
-            line.setAttribute('y1', '2');
-            line.setAttribute('x2', '32');
-            line.setAttribute('y2', '12');
-            line.setAttribute('stroke', '#FFD60A');
-            line.setAttribute('stroke-width', '3');
-            line.setAttribute('transform', `rotate(${i * 45} 32 32)`);
-            svg.appendChild(line);
-          }
-          break;
-        }
-        case 'rainy': {
-          svg.classList.add('animate-rainy');
-          const cloud = document.createElementNS(svgNS, 'ellipse');
-          cloud.setAttribute('cx', '32');
-          cloud.setAttribute('cy', '28');
-          cloud.setAttribute('rx', '20');
-          cloud.setAttribute('ry', '14');
-          cloud.setAttribute('fill', '#5383d3');
-          svg.appendChild(cloud);
-          for(let i=0; i<3; i++) {
-            let drop = document.createElementNS(svgNS, 'g');
-            drop.classList.add('raindrop');
-            drop.setAttribute('transform', `translate(${20 + i*12},45)`);
-            let ellipse = document.createElementNS(svgNS, 'ellipse');
-            ellipse.setAttribute('cx', '0');
-            ellipse.setAttribute('cy', '0');
-            ellipse.setAttribute('rx', '3');
-            ellipse.setAttribute('ry', '6');
-            ellipse.setAttribute('fill', '#4a90e2');
-            drop.appendChild(ellipse);
-            svg.appendChild(drop);
-          }
-          break;
-        }
-        case 'cloudy': {
-          svg.classList.add('animate-cloudy');
-          for(let i=0; i<3; i++) {
-            let cloud = document.createElementNS(svgNS, 'ellipse');
-            cloud.classList.add('cloud');
-            cloud.setAttribute('cx', 22 + i*14);
-            cloud.setAttribute('cy', 32);
-            cloud.setAttribute('rx', 14);
-            cloud.setAttribute('ry', 10);
-            cloud.setAttribute('fill', '#9dbbd9');
-            svg.appendChild(cloud);
-          }
-          break;
-        }
-        case 'snowy': {
-          svg.classList.add('animate-snowy');
-          for(let i=0; i<5; i++) {
-            let snowflake = document.createElementNS(svgNS, 'g');
-            snowflake.classList.add('snowflake');
-            snowflake.setAttribute('transform', `translate(${16 + i*12},38)`);
-            let circle = document.createElementNS(svgNS, 'circle');
-            circle.setAttribute('cx', '0');
-            circle.setAttribute('cy', '0');
-            circle.setAttribute('r', '4');
-            circle.setAttribute('fill', '#e1f2ff');
-            snowflake.appendChild(circle);
-            svg.appendChild(snowflake);
-          }
-          break;
-        }
-        case 'stormy': {
-          svg.classList.add('animate-stormy');
-          const stormCloud = document.createElementNS(svgNS, 'ellipse');
-          stormCloud.setAttribute('cx', '32');
-          stormCloud.setAttribute('cy', '28');
-          stormCloud.setAttribute('rx', '20');
-          stormCloud.setAttribute('ry', '14');
-          stormCloud.setAttribute('fill', '#616161');
-          svg.appendChild(stormCloud);
-          let lightning = document.createElementNS(svgNS, 'g');
-          lightning.classList.add('lightning');
-          let bolt = document.createElementNS(svgNS, 'polygon');
-          bolt.setAttribute('points', '28,38 34,38 30,48 36,48 24,62 28,50 22,50');
-          bolt.setAttribute('fill', '#FFEB3B');
-          lightning.appendChild(bolt);
-          svg.appendChild(lightning);
-          break;
-        }
-        default:
-          svg.appendChild(document.createTextNode(''));
-      }
-      return svg;
-    }
-
-    // Update current weather UI block
-    function updateCurrentWeatherUI(current) {
-      currentTempEl.textContent = `${current.temperature}°C`;
-      currentConditionEl.textContent = current.condition.charAt(0).toUpperCase() + current.condition.slice(1);
-      feelsLikeTextEl.textContent = `Hissedilen: ${current.feelsLike}°C`;
-      clearElement(currentWeatherIconEl);
-      currentWeatherIconEl.appendChild(createWeatherIcon(current.condition));
-    }
-
-    // Update hourly forecast UI
-    function updateHourlyForecastUI(hourly) {
-      clearElement(hourlyForecastEl);
-      hourly.forEach(hourData => {
-        const hourItem = document.createElement('div');
-        hourItem.classList.add('hourly-item');
-        const hourLabel = document.createElement('div');
-        const timeOptions = { hour: 'numeric', hour12: true };
-        hourLabel.textContent = new Date(0,0,0,hourData.hour).toLocaleTimeString('tr-TR', timeOptions);
-        hourLabel.className = 'hour';
-        const tempLabel = document.createElement('div');
-        tempLabel.textContent = `${hourData.temp}°`;
-        tempLabel.classList.add('temp');
-        hourItem.appendChild(hourLabel);
-        hourItem.appendChild(tempLabel);
-        hourlyForecastEl.appendChild(hourItem);
-      });
-    }
-
-    // Update daily forecast UI
-    function updateDailyForecastUI(forecast) {
-      clearElement(dailyForecastEl);
-      forecast.forEach(day => {
-        const dailyCard = document.createElement('div');
-        dailyCard.classList.add('daily-card');
-        const dateObj = new Date(day.date);
-        dailyCard.innerHTML = `<strong>${dateObj.toLocaleDateString('tr-TR', {weekday: 'short', month: 'short', day: 'numeric'})}</strong>
-          <div>${day.high}° / ${day.low}°</div>
-          <div>${day.condition.charAt(0).toUpperCase() + day.condition.slice(1)}</div>`;
-        dailyForecastEl.appendChild(dailyCard);
-      });
-    }
-
-    // Update circular progress indicators given value (0-100)
-    function updateCircularProgress(circleEl, labelEl, value, maxValue=100) {
-      let pct = Math.min(Math.max(value, 0), maxValue);
-      let dashoffset = 283 - (283 * (pct / maxValue));
-      circleEl.style.strokeDashoffset = dashoffset;
-      labelEl.textContent = value + (labelEl.id === 'humidityValue' ? '%' : '');
-    }
-
-    // Update metrics section
-    function updateMetricsSection(airQuality, uvIndex, humidity) {
-      updateCircularProgress(aqiProgressEl, aqiValueEl, airQuality.aqi, 500);
-      updateCircularProgress(uvProgressEl, uvValueEl, uvIndex, 11);
-      updateCircularProgress(humidityProgressEl, humidityValueEl, humidity, 100);
-    }
-
-    // Update additional details section
-    function updateAdditionalDetails(current, astronomy) {
-      pressureValueEl.textContent = current.pressure;
-      windSpeedValueEl.textContent = current.windSpeed;
-      windDirectionValueEl.textContent = degreesToDirection(current.windDirection);
-      visibilityValueEl.textContent = current.visibility || 10;
-      sunriseValueEl.textContent = formatTimeISOToLocale(astronomy.sunrise, null);
-      sunsetValueEl.textContent = formatTimeISOToLocale(astronomy.sunset, null);
-      goldenHourValueEl.textContent = astronomy.goldenHour || calculateGoldenHour(astronomy.sunrise, astronomy.sunset);
-    }
-
-    // Simulate "realistic" weather data update for a location
-    function updateWeatherData(locationId) {
-      const location = locations.find(l => l.id === locationId);
-      const conditions = ['sunny', 'cloudy', 'rainy', 'snowy', 'stormy'];
-      const currentCondition = conditions[Math.floor(Math.random() * conditions.length)];
-      const temperature = Math.round(Math.random() * 35 + 5);
-      const feelsLike = temperature - Math.floor(Math.random() * 5);
-      const humidity = Math.round(Math.random() * 60 + 20);
-      const pressure = Math.round(Math.random() * 50 + 980);
-      const windSpeed = Math.round(Math.random() * 25 + 5);
-      const windDirection = Math.floor(Math.random() * 360);
-      const uvIndex = Math.round(Math.random() * 11);
-      const visibility = Math.floor(Math.random() * 10) + 5;
-      const nowDate = new Date();
-      const sunriseISO = new Date(nowDate.setHours(6, 15)).toISOString();
-      const sunsetISO = new Date(nowDate.setHours(18, 45)).toISOString();
-
-      weatherData = {
-        locations: locations,
-        currentWeather: {
-          temperature,
-          feelsLike,
-          condition: currentCondition,
-          humidity,
-          pressure,
-          windSpeed,
-          windDirection,
-          uvIndex,
-          visibility
-        },
-        forecasts: generateRealisticForecast(7, location.coordinates),
-        alerts: [],
-        airQuality: {
-          aqi: Math.min(Math.round(Math.random() * 200), 300),
-          pollutants: ['PM2.5', 'NO2', 'O3'],
-          recommendations: ['Hassassanız dışarıda egzersiz yapmaktan kaçının.'],
-        },
-        astronomy: {
-          sunrise: sunriseISO,
-          sunset: sunsetISO,
-          moonPhase: 'Büyüyen Hilal',
-          goldenHour: calculateGoldenHour(sunriseISO, sunsetISO),
-        }
-      };
-
-      updateCurrentWeatherUI(weatherData.currentWeather);
-      updateHourlyForecastUI(weatherData.forecasts[0].hourly);
-      updateDailyForecastUI(weatherData.forecasts);
-      updateMetricsSection(weatherData.airQuality, weatherData.currentWeather.uvIndex, weatherData.currentWeather.humidity);
-      updateAdditionalDetails(weatherData.currentWeather, weatherData.astronomy);
-      updateWeatherBackground(currentCondition);
-      updateMapLayer(currentCondition);
-    }
-
-    // Map layer update simulation
-    function updateMapLayer(condition) {
-      clearElement(mapContainerEl);
-      const img = document.createElement('img');
-      let altText = '';
-      switch(condition) {
-        case 'sunny':
-          img.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/421527ae-d2cd-4706-bbb5-5baddecdbbae.png)+Harita';
-          altText = 'Düzgün güneşli koşulları gösteren radar haritası';
-          break;
-        case 'rainy':
-          img.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/a25aafea-11a1-48a3-b849-610de884ead4.png)+Harita';
-          altText = 'Yağmurlu hava düzenlerini gösteren radar haritası';
-          break;
-        case 'cloudy':
-          img.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/56a2d8dd-618a-4f2c-9cce-237b6ee2e240.png';
-          altText = 'Kapalı koşulları gösteren bulut örtüsü haritası';
-          break;
-        case 'snowy':
-          img.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/a5bdff09-db11-4418-9d51-07031fe9301d.png';
-          altText = 'Kar birikim alanlarını gösteren kar örtüsü haritası';
-          break;
-        case 'stormy':
-          img.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/d9e336ab-de8a-4551-9240-05086117d393.png';
-          altText = 'Şiddetli fırtına hareketini gösteren fırtına haritası';
-          break;
-        default:
-          img.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/d04e116f-377f-40bd-8678-54514bd36b63.png';
-          altText = 'Hava durumu genel haritası';
-      }
-      img.alt = altText;
-      img.className = 'map-img';
-      mapContainerEl.appendChild(img);
-    }
-
-    // === Theme toggle logic ===
-    function enableLightMode() {
-      body.classList.add('light');
-      body.classList.remove('dark');
-      btnThemeToggle.setAttribute('aria-pressed', 'true');
-      header.classList.add('light');
-      header.classList.remove('dark');
-    }
-    function enableDarkMode() {
-      body.classList.add('dark');
-      body.classList.remove('light');
-      btnThemeToggle.setAttribute('aria-pressed', 'false');
-      header.classList.add('dark');
-      header.classList.remove('light');
-    }
-    function toggleTheme() {
-      if(body.classList.contains('dark')) {
-        enableLightMode();
-        localStorage.setItem('theme', 'light');
-      } else {
-        enableDarkMode();
-        localStorage.setItem('theme', 'dark');
-      }
-    }
-
-    // === Authentication and user management ===
-    function openModal(modal) {
-      modal.classList.add('show');
-      modal.querySelector('input,button').focus();
-      trapFocus(modal);
-    }
-    function closeModal(modal) {
-      modal.classList.remove('show');
-      returnFocus();
-    }
-    function trapFocus(modal) {
-      const focusableElements = modal.querySelectorAll(
-        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
-      );
-      const firstElem = focusableElements[0];
-      const lastElem = focusableElements[focusableElements.length - 1];
-      modal.addEventListener('keydown', function(e) {
-        if(e.key === 'Tab') {
-          if(e.shiftKey) {
-            if(document.activeElement === firstElem) {
-              e.preventDefault();
-              lastElem.focus();
-            }
-          } else {
-            if(document.activeElement === lastElem) {
-              e.preventDefault();
-              firstElem.focus();
-            }
-          }
-        }
-        if(e.key === 'Escape') {
-          closeModal(modal);
-        }
-      });
-    }
-    let lastFocusedElement = null;
-    function saveFocus() {
-      lastFocusedElement = document.activeElement;
-    }
-    function returnFocus() {
-      if(lastFocusedElement) {
-        lastFocusedElement.focus();
-        lastFocusedElement = null;
-      }
-    }
-
-    // Show user info and developer/admin controls
-    function showUserInfo() {
-      userInfoSection.style.display = 'block';
-      userNameDisplay.textContent = currentUser.name;
-      devModeToggle.checked = developerMode;
-      adminModeToggle.checked = adminMode;
-      devInfoEl.style.display = developerMode || adminMode ? 'block' : 'none';
-    }
-    function hideUserInfo() {
-      userInfoSection.style.display = 'none';
-    }
-    function updateUserModeUI() {
-      if(currentUser) {
-        showUserInfo();
-        removeBadges();
-        if(adminMode) addBadge('Yönetici');
-        if(developerMode) addBadge('Geliştirici');
-        btnSignIn.textContent = 'Çıkış';
-      } else {
-        hideUserInfo();
-        removeBadges();
-        btnSignIn.textContent = 'Giriş';
-        developerMode = false;
-        adminMode = false;
-      }
-    }
-    function addBadge(text) {
-      const existingBadge = [...header.children].find(c => c.classList && c.classList.contains('mode-badge') && c.textContent === text);
-      if(!existingBadge) {
-        const badge = document.createElement('div');
-        badge.className = 'mode-badge';
-        badge.textContent = text;
-        header.appendChild(badge);
-      }
-    }
-    function removeBadges() {
-      [...header.children].forEach(child => {
-        if(child.classList && child.classList.contains('mode-badge')) {
-          header.removeChild(child);
-        }
-      });
-    }
-
-    function handleSignIn(email, password) {
-      const user = usersDB.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-      if(user) {
-        currentUser = {...user};
-        developerMode = user.roles.includes('developer');
-        adminMode = user.roles.includes('admin');
-        localStorage.setItem('signedInUser', JSON.stringify(currentUser));
-        updateUserModeUI();
-        closeModal(signInModal);
-        alert(`Tekrar hoşgeldiniz, ${currentUser.name}!`);
-        return true;
-      }
-      alert('Geçersiz e-posta veya şifre. Lütfen tekrar deneyin.');
-      return false;
-    }
-    function handleSignUp(name, email, password) {
-      if(usersDB.some(u => u.email === email.toLowerCase())) {
-        alert('Bu e-posta zaten kayıtlı. Lütfen giriş yapın veya farklı bir e-posta kullanın.');
-        return false;
-      }
-      const newUser = { email: email.toLowerCase(), password, name, roles: ['user'] };
-      usersDB.push(newUser);
-      alert('Kayıt başarılı! Lütfen giriş yapın.');
-      closeModal(signUpModal);
-      openModal(signInModal);
-      return true;
-    }
-
-    // Persist user session (front-end only)
-    function loadUserSession() {
-      const savedUser = localStorage.getItem('signedInUser');
-      if(savedUser) {
-        try {
-          currentUser = JSON.parse(savedUser);
-          developerMode = currentUser.roles.includes('developer');
-          adminMode = currentUser.roles.includes('admin');
-          updateUserModeUI();
-        } catch(e) {
-          localStorage.removeItem('signedInUser');
-        }
-      }
-    }
-    function signOutUser() {
-      currentUser = null;
-      developerMode = false;
-      adminMode = false;
-      localStorage.removeItem('signedInUser');
-      updateUserModeUI();
-      alert('Çıkış yaptınız.');
-    }
-
-    // Location selection and search
-    function filterLocations(query) {
-      if(!query) return [];
-      const qLower = query.toLowerCase();
-      return locations.filter(loc => loc.name.toLowerCase().startsWith(qLower) || loc.country.toLowerCase().startsWith(qLower));
-    }
-    function updateLocationSuggestions(filteredLocations) {
-      clearElement(locationListbox);
-      if(filteredLocations.length === 0) {
-        locationListbox.style.display = 'none';
-        locationInput.setAttribute('aria-expanded', 'false');
-        return;
-      }
-      filteredLocations.forEach(loc => {
-        const li = document.createElement('li');
-        li.textContent = `${loc.name}, ${loc.country}`;
-        li.setAttribute('role', 'option');
-        li.tabIndex = -1;
-        li.dataset.locationId = loc.id;
-        li.style.padding = '8px 12px';
-        li.style.cursor = 'pointer';
-        li.addEventListener('click', () => {
-          selectLocation(loc.id);
-          hideLocationSuggestions();
-          locationInput.value = `${loc.name}, ${loc.country}`;
-          locationInput.setAttribute('aria-expanded', 'false');
-          locationInput.focus();
-        });
-        li.addEventListener('keydown', e => {
-          if(e.key === 'Enter') {
-            e.preventDefault();
-            li.click();
-          }
-        });
-        locationListbox.appendChild(li);
-      });
-      locationListbox.style.display = 'block';
-      locationInput.setAttribute('aria-expanded', 'true');
-    }
-    function hideLocationSuggestions() {
-      locationListbox.style.display = 'none';
-      locationInput.setAttribute('aria-expanded', 'false');
-    }
-    function selectLocation(locationId) {
-      selectedLocationId = locationId;
-      updateWeatherData(locationId);
-    }
-
-    // Developer and admin toggles
-    devModeToggle.addEventListener('change', (e) => {
-      developerMode = e.target.checked;
-      updateUserModeUI();
-    });
-    adminModeToggle.addEventListener('change', (e) => {
-      adminMode = e.target.checked;
-      updateUserModeUI();
-    });
-
-    // === Event listeners ===
-    btnThemeToggle.addEventListener('click', toggleTheme);
-
-    // On page load, set stored theme and user info
-    window.addEventListener('load', () => {
-      const theme = localStorage.getItem('theme');
-      if(theme === 'light') enableLightMode();
-      else enableDarkMode();
-      loadUserSession();
-      updateWeatherData(selectedLocationId);
-    });
-
-    // Location search input events
-    locationInput.addEventListener('input', e => {
-      const query = e.target.value.trim();
-      if(query.length > 0) updateLocationSuggestions(filterLocations(query));
-      else hideLocationSuggestions();
-    });
-    // Hide suggestions on outside click
-    document.body.addEventListener('click', (e) => {
-      if(!locationListbox.contains(e.target) && e.target !== locationInput) hideLocationSuggestions();
-    });
-
-    // sutup
-    btnSignIn.addEventListener('click', () => {
-      if(currentUser) signOutUser();
-      else openModal(signInModal);
-    });
-    // easy
-    [...document.querySelectorAll('.modal-close')].forEach(button => {
-      button.addEventListener('click', e => {
-        const modal = e.target.closest('.modal');
-        closeModal(modal);
-      });
-    });
-
-    // hahahahaha
-    showSignUpLink.addEventListener('click', () => {
-      closeModal(signInModal);
-      openModal(signUpModal);
-    });
-    showSignInLink.addEventListener('click', () => {
-      closeModal(signUpModal);
-      openModal(signInModal);
-    });
-
-    // giriş
-    signInForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const email = e.target.email.value.trim();
-      const password = e.target.password.value;
-      if(handleSignIn(email, password)) signInForm.reset();
-    });
-
-    // brababa
-    signUpForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const name = e.target.name.value.trim();
-      const email = e.target.email.value.trim();
-      const password = e.target.password.value;
-      if(handleSignUp(name, email, password)) signUpForm.reset();
-    });
-
-    // Lavgiton
-    locationInput.addEventListener('keydown', e => {
-      if(locationListbox.style.display === 'block') {
-        const options = locationListbox.querySelectorAll('li');
-        if(!options.length) return;
-        let idx = Array.from(options).indexOf(document.activeElement);
-        if(e.key === 'ArrowDown') {
-          e.preventDefault();
-          const nextIdx = (idx + 1) % options.length;
-          options[nextIdx].focus();
-        } else if(e.key === 'ArrowUp') {
-          e.preventDefault();
-          if(idx <= 0) locationInput.focus();
-          else options[idx-1].focus();
-        }
-      }
-    });
-
-    // Accessibility: yardmcılar
-    const style = document.createElement('style');
-    style.textContent = `.visually-hidden {
-      position:absolute;
-      width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
-      clip:rect(0,0,0,0); white-space:nowrap; border:0;
-    }`;
-    document.head.appendChild(style);
-
-    // oyunlar
-    tabGame1.addEventListener('click', () => {
-      tabGame1.setAttribute('aria-selected', 'true');
-      tabGame1.tabIndex = 0;
-      tabGame2.setAttribute('aria-selected', 'false');
-      tabGame2.tabIndex = -1;
-      game1Panel.hidden = false;
-      game2Panel.hidden = true;
-      stopGame2();
-      startGame1();
-    });
-    tabGame2.addEventListener('click', () => {
-      tabGame1.setAttribute('aria-selected', 'false');
-      tabGame1.tabIndex = -1;
-      tabGame2.setAttribute('aria-selected', 'true');
-      tabGame2.tabIndex = 0;
-      game1Panel.hidden = true;
-      game2Panel.hidden = false;
-      stopGame1();
-      startGame2();
-    });
-
-    // oyun 1
-    class Raindrop {
-      constructor(x, y, speed) {
-        this.x = x;
-        this.y = y;
-        this.speed = speed;
-        this.radius = 6;
-      }
-      update() {
-        this.y += this.speed;
-      }
-      draw(ctx) {
-        const gradient = ctx.createRadialGradient(this.x, this.y, 3, this.x, this.y, this.radius);
-        gradient.addColorStop(0, '#a0d8ff');
-        gradient.addColorStop(1, '#0044cc');
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.ellipse(this.x, this.y, 4, this.radius, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    function startGame1() {
-      game1Score = 0;
-      game1Raindrops = [];
-
-      game1PlayerX = game1Canvas.width / 2;
-
-      game1Running = true;
-      game1ScoreLabel.textContent = `Puan: 0`;
-      game1Canvas.focus();
-
-      function game1Loop() {
-        if(!game1Running) return;
-
-        game1Ctx.clearRect(0, 0, game1Canvas.width, game1Canvas.height);
-
-        game1Ctx.fillStyle = '#60a5fa';
-        game1Ctx.strokeStyle = '#1e40af';
-        game1Ctx.lineWidth = 3;
-        game1Ctx.fillRect(game1PlayerX - game1PlayerWidth/2, game1Canvas.height - game1PlayerHeight - 10, game1PlayerWidth, game1PlayerHeight);
-        game1Ctx.strokeRect(game1PlayerX - game1PlayerWidth/2, game1Canvas.height - game1PlayerHeight - 10, game1PlayerWidth, game1PlayerHeight);
-
-        if(Math.random() < 0.03) {
-          let xPos = Math.random() * (game1Canvas.width - 20) + 10;
-          let speed = 2 + Math.random() * 3;
-          game1Raindrops.push(new Raindrop(xPos, -10, speed));
-        }
-
-        for(let i = game1Raindrops.length - 1; i >= 0; i--) {
-          const drop = game1Raindrops[i];
-          drop.update();
-          drop.draw(game1Ctx);
-
-          if(drop.y + drop.radius >= game1Canvas.height - game1PlayerHeight - 10) {
-            if(drop.x > game1PlayerX - game1PlayerWidth/2 && drop.x < game1PlayerX + game1PlayerWidth/2) {
-              game1Score++;
-              game1Raindrops.splice(i, 1);
-              continue;
-            }
-          }
-          if(drop.y - drop.radius > game1Canvas.height) {
-            game1Raindrops.splice(i, 1);
-          }
-        }
-
-        game1ScoreLabel.textContent = `Puan: ${game1Score}`;
-
-        game1AnimationFrame = requestAnimationFrame(game1Loop);
-      }
-      game1Loop();
-    }
-    function stopGame1() {
-      game1Running = false;
-      if(game1AnimationFrame) cancelAnimationFrame(game1AnimationFrame);
-    }
-    game1Canvas.addEventListener('mousemove', e => {
-      const rect = game1Canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      game1PlayerX = Math.min(Math.max(x, game1PlayerWidth/2), game1Canvas.width - game1PlayerWidth/2);
-    });
-    game1RestartBtn.addEventListener('click', () => {
-      stopGame1();
-      startGame1();
-    });
-
-   // oyun 2
-    class RunnerObstacle {
-      constructor(x, y, width, height, speed) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.speed = speed;
-      }
-      update() {
-        this.x -= this.speed;
-      }
-      draw(ctx) {
-        ctx.fillStyle = '#e87171';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-      }
-      collidesWith(px, py, pWidth, pHeight) {
-        return !(px > this.x + this.width || px+pWidth < this.x || py > this.y + this.height || py+pHeight < this.y);
-      }
-    }
-    const game2PlayerWidth = 40;
-    const game2PlayerHeight = 60;
-    function startGame2() {
-      game2Score = 0;
-      game2PlayerY = game2GroundY - game2PlayerHeight;
-      game2PlayerVY = 0;
-      game2Obstacles = [];
-      game2Running = true;
-      game2ScoreLabel.textContent = `Puan: 0`;
-      game2Canvas.focus();
-
-      function game2Loop() {
-        if(!game2Running) return;
-
-        game2Ctx.clearRect(0, 0, game2Canvas.width, game2Canvas.height);
-
-        game2Ctx.fillStyle = '#407744';
-        game2Ctx.fillRect(0, game2GroundY, game2Canvas.width, game2Canvas.height - game2GroundY);
-
-        game2PlayerVY += 0.8;
-        game2PlayerY += game2PlayerVY;
-        if(game2PlayerY > game2GroundY - game2PlayerHeight) {
-          game2PlayerY = game2GroundY - game2PlayerHeight;
-          game2PlayerVY = 0;
-        }
-
-        game2Ctx.fillStyle = '#60a5fa';
-        game2Ctx.fillRect(50, game2PlayerY, game2PlayerWidth, game2PlayerHeight);
-        game2Ctx.fillStyle = '#0369a1';
-        game2Ctx.beginPath();
-        game2Ctx.moveTo(70, game2PlayerY+15);
-        game2Ctx.lineTo(90, game2PlayerY+10);
-        game2Ctx.lineTo(70, game2PlayerY+30);
-        game2Ctx.fill();
-
-        if(Math.random() < 0.02) {
-          let height = Math.random() * 40 + 20;
-          game2Obstacles.push(new RunnerObstacle(game2Canvas.width, game2GroundY-height, 30, height, 5));
-        }
-
-        for(let i = game2Obstacles.length-1; i >= 0; i--) {
-          let obs = game2Obstacles[i];
-          obs.update();
-          obs.draw(game2Ctx);
-          if(obs.x + obs.width < 0) game2Obstacles.splice(i,1);
-
-          if(obs.collidesWith(50, game2PlayerY, game2PlayerWidth, game2PlayerHeight)) {
-            game2Running = false;
-            alert('Oyunu kaybettin! Puanın: ' + game2Score);
-          }
-        }
-
-        if(game2Running) {
-          game2Score++;
-          game2ScoreLabel.textContent = `Puan: ${game2Score}`;
-          game2AnimationFrame = requestAnimationFrame(game2Loop);
-        }
-      }
-      game2Loop();
-    }
-    function stopGame2() {
-      game2Running = false;
-      if(game2AnimationFrame) cancelAnimationFrame(game2AnimationFrame);
-    }
-    game2Canvas.addEventListener('click', () => {
-      if(game2PlayerVY === 0) game2PlayerVY = -15;
-    });
-    game2RestartBtn.addEventListener('click', () => {
-      stopGame2();
-      startGame2();
-    });
-
-  })();
-</script>
-</body>
-</html>
-
+    <!-- Karbonun Alayına Gider Section -->
+    <section id="carbon-explained" class="py-16 bg-green-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-6 text-gray-800">
+                <span class="emoji">💨</span> Karbonun Alayına Gider!
+            </h2>
+            <p class="text-center text-xl mb-12 max-w-3xl mx-auto text-gray-600">
+                Karbon ayak izi dediğimiz şey her yaptığının doğaya maliyeti kanka. Hadi gel biraz daha detaylı bakalım.
+            </p>
+            
+            <div class="md:flex gap-8 items-center mb-12">
+                <div class="md:w-1/2 mb-8 md:mb-0">
+                    <h3 class="text-2xl font-semibold mb-4 text-gray-800">Karbon Ayak İzi Tam Olarak Nedir?</h3>
+                    <p class="text-gray-600 mb-4">Kanka, şöyle düşün: Her yaptığın hareketin bir bedeli var. Yediğin yemek, kullandığın elektrik, bindiğin araba... Hepsi atmosfere karbon salıyor.</p>
+                    <p class="text-gray-600">Bu karbon da küresel ısınmaya, iklim değişikliğine yol açıyor. Yani aslında hepimiz istemeden dünyayı ısıtıyoruz!</p>
+                </div>
+                <div class="md:w-1/2">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h4 class="text-lg font-semibold mb-3">Senin Karbon Ayak İzin</h4>
+                        <div class="w-full bg-gray-200 rounded-full h-6 mb-2">
+                            <div id="carbon-bar" class="bg-red-600 h-6 rounded-full" style="width: 70%"></div>
+                        </div>
+                        <p class="text-gray-600 text-sm">Şu anda ayak izin <span class="font-bold">70%</span> seviyesinde. Bunu aşağı çekebiliriz!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-md">
+                    <div class="text-green-600 mb-3">
+                        <svg class="w-10 h-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-center">Nasıl Artıyor?</h3>
+                    <ul class="text-gray-600 pl-5 list-disc space-y-1">
+                        <li>Araba kullanmak</li>
+                        <li>Fazla et yemek</li>
+                        <li>Gereksiz elektrik kullanımı</li>
+                        <li>Plastik tüketmek</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-md">
+                    <div class="text-green-600 mb-3">
+                        <svg class="w-10 h-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-center">Nasıl Azalıyor?</h3>
+                    <ul class="text-gray-600 pl-5 list-disc space-y-1">
+                        <li>Toplu taşıma kullanmak</li>
+                        <li>Bitkisel beslenmek</li>
+                        <li>Enerji tasarrufu</li>
+                        <li>Geri dönüşüm</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-md">
+                    <div class="text-green-600 mb-3">
+                        <svg class="w-10 h-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2 text-center">Yerel Çözümler</h3>
+                    <ul class="text-gray-600 pl-5 list-disc space-y-1">
+                        <li>Yerel üreticiden alışveriş</li>
+                        <li>Pazar alışverişi</li>
+                        <li>Balkonda sebze yetiştirme</li>
+                        <li>Yürüyüş/bisiklet</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Oyun Bölümü -->
+    <section id="game" class="py-16 bg-blue-50">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">
+                <span class="emoji">🎮</span> Karbon Avı Oyunu
+            </h2>
+            <p class="text-xl mb-8 max-w-2xl mx-auto text-gray-600">
+                Aşağıdaki seçimlerle karbon ayak izini azaltmaya çalış! Ne kadar başarılı olacaksın bakalım?
+            </p>
+            
+            <div id="game-container" class="bg-white rounded-xl shadow-lg p-6 max-w-md mx-auto">
+                <div id="game-question" class="text-xl font-medium mb-6">
+                    Eve giderken hangi ulaşımı tercih edersin?
+                </div>
+                
+                <div id="game-options" class="space-y-3">
+                    <button class="game-option w-full bg-blue-100 hover:bg-blue-200 text-blue-800 py-3 px-4 rounded-lg transition-all text-left">
+                        <span class="emoji">🚗</span> Tek başıma araba kullanırım
+                    </button>
+                    <button class="game-option w-full bg-blue-100 hover:bg-blue-200 text-blue-800 py-3 px-4 rounded-lg transition-all text-left">
+                        <span class="emoji">🚕</span> Taksi veya Uber kullanırım
+                    </button>
+                    <button class="game-option w-full bg-blue-100 hover:bg-blue-200 text-blue-800 py-3 px-4 rounded-lg transition-all text-left">
+                        <span class="emoji">🚌</span> Otobüs veya metro kullanırım
+                    </button>
+                    <button class="game-option w-full bg-blue-100 hover:bg-blue-200 text-blue-800 py-3 px-4 rounded-lg transition-all text-left">
+                        <span class="emoji">🚲</span> Bisikletle giderim
+                    </button>
+                </div>
+                
+                <div id="game-result" class="hidden mt-6 p-4 rounded-lg"></div>
+                
+                <div id="game-next" class="hidden mt-6">
+                    <button class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition-all">
+                        Sonraki Soru <span class="emoji">👉</span>
+                    </button>
+                </div>
+                
+                <div id="game-score" class="hidden mt-6">
+                    <div class="text-2xl font-bold mb-2">Skorun: <span id="score-value">0</span></div>
+                    <div class="text-lg mb-4">Karbon ayak izini <span id="carbon-reduced">0</span>% azalttın!</div>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-all">
+                        Tekrar Oyna <span class="emoji">🔄</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Eylemler/Öneriler -->
+    <section id="actions" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12 text-gray-800">
+                <span class="emoji">✨</span> 20 Adımda Yeşil Kahraman Ol
+            </h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-green-50 rounded-lg p-6 shadow-sm">
+                    <div class="text-3xl mb-3">🚶</div>
+                    <h3 class="text-lg font-semibold mb-2">Yürümeyi Alışkanlık Haline Getir</h3>
+                    <p class="text-gray-600 text-sm">15 dakikadan kısa mesafelere yürüyerek git. Hem sağlıklı hem çevreci!</p>
+                </div>
+                
+                <div class="bg-green-50 rounded-lg p-6 shadow-sm">
+                    <div class="text-3xl mb-3">🍔</div>
+                    <h3 class="text-lg font-semibold mb-2">Eti Haftada 1 Gün Ye</h3>
+                    <p class="text-gray-600 text-sm">"Pazartesi Etsiz Gün" yap. Sığır eti karbon ayak izinin %10'unu oluşturuyor.</p>
+                </div>
+                
+                <div class="bg-green-50 rounded-lg p-6 shadow-sm">
+                    <div class="text-3xl mb-3">💧</div>
+                    <h3 class="text-lg font-semibold mb-2">Duş Süreni Kısalt</h3>
+                    <p class="text-gray-600 text-sm">5 dakikaya indirerek yılda 4 ton su tasarrufu yapabilirsin.</p>
+                </div>
+                
+                <div class="bg-green-50 rounded-lg p-6 shadow-sm">
+                    <div class="text-3xl mb-3">🛒</div>
+                    <h3 class="text-lg font-semibold mb-2">Bez Çanta Kullan</h3>
+                    <p class="text-gray-600 text-sm">Bir plastik poşetin doğada yok olması 1000 yıl sürüyor.</p>
+                </div>
+                
+                <div class="bg-green-50 rounded-lg p-6 shadow-sm">
+                    <div class="text-3xl mb-3">🌡️</div>
+                    <h3 class="text-lg font-semibold mb-2">Termostatı 1 Derece Düşür</h3>
+                    <p class="text-gray-600 text-sm">Kışın kombini 1 derece düşürmek %5 enerji tasarrufu sağlar.</p>
+                </div>
+                
+                <div class="bg-green-50 rounded-lg p-6 shadow-sm">
+                    <div class="text-3xl mb-3">📱</div>
+                    <h3 class="text-lg font-semibold mb-2">Telefonunu Uzat</h3>
+                    <p class="text-gray-600 text-sm">Telefonunu 1 yıl daha kullanarak 85 kg karbon salımını önle.</p>
+                </div>
+                
+                <div class="bg-green-50 rounded-lg p-6 shadow-sm">
+                    <div class="text-3xl mb-3">☕</div>
+                    <h3 class="text-lg font-semibold mb-2">Termos Kullan</h3>
+                    <p class="text-gray-600 text-sm">Kahve zincirlerinin kağıt bardakları geri dönüştürülemiyor. Termosla gidersen kral olursun.</p>
+                </div>
+                
+                <div class="bg-green-50 rounded-lg p-6 shadow-sm">
+                    <div class="text-3xl mb-3">👕</div>
+                    <h3 class="text-lg font-semibold mb-2">İkinci El Giyin</h3>
+                    <p class="text-gray-600 text-sm">Bir kot pantolon üretimi 3,500 litre su harcıyor. İkinci el ekonomisine katıl.</p>
+                </div>
+                
+                <div class="bg-green-50 rounded-lg p-6 shadow-sm">
+                    <div class="text-3xl mb-3">🌱</div>
+                    <h3 class="text-lg font-semibold mb-2">Bir Bitki Yetiştir</h3>
+                    <p class="text-gray-600 text-sm">Ev bitkileri havayı temizler ve stresi azaltır. Hem de çok havalı görünür.</p>
+                </div>
+                
+                <div class="bg-green-50 rounded-lg p-6 shadow-sm">
+                    <div class="text-3xl mb-3">📚</div>
+                    <h3 class="text-lg font-semibold mb-2">Kütüphaneye Üye Ol</h3>
+                    <p class="text-gray-600 text-sm">Kitabını alacağına kütüphaneden ödünç al, hem para hem kaynak tasar
